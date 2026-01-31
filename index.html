@@ -1,0 +1,138 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Inicio — GA4 Practice Site</title>
+  <link rel="stylesheet" href="style.css" />
+  <script src="ga4-config.js"></script>
+  <script src="ga4.js"></script>
+</head>
+<body>
+<header>
+  <div class="wrap">
+    <div class="row" style="justify-content:space-between; gap:12px;">
+      <div>
+        <div class="pill">GA4 Practice Site</div>
+        <div class="small">Multi‑página realista · eventos recomendados · e‑commerce demo · debug</div>
+      </div>
+      <div class="small">Tip: agrega <code>?debug=1</code> para DebugView</div>
+    </div>
+    <nav style="margin-top:10px;">
+      <a href="index.html" class="active">Inicio</a>
+<a href="catalog.html" class="">Catálogo</a>
+<a href="product.html?item_id=SKU-1001" class="">Producto</a>
+<a href="cart.html" class="">Carrito</a>
+<a href="checkout.html" class="">Checkout</a>
+<a href="account.html" class="">Cuenta</a>
+<a href="support.html" class="">Soporte</a>
+<a href="blog.html" class="">Blog</a>
+<a href="settings.html" class="">Settings</a>
+    </nav>
+  </div>
+</header>
+<main>
+    <div class="grid">
+      <section class="card">
+        <h1>Bienvenido, Cris 👊</h1>
+        <p>
+          Esta web es un “mini‑negocio” ficticio (Fit Mayernit Store) para practicar <b>GA4</b> como en una chamba real:
+          múltiples páginas (page_view), eventos recomendados, embudos, campañas (UTM), conversiones y parámetros consistentes.
+        </p>
+
+        <h2>1) Dispara eventos rápidos</h2>
+        <div class="row">
+          <button class="primary" id="btn_cta">Click CTA (select_promo)</button>
+          <button class="ok" id="btn_signup">Simular registro (sign_up)</button>
+          <button class="warn" id="btn_search">Buscar “mancuernas” (search)</button>
+          <button class="bad" id="btn_outbound">Click outbound (click)</button>
+        </div>
+
+        <h2 style="margin-top:14px;">2) Campañas / UTM (para Source / Medium)</h2>
+        <p>Abre estas URLs para que GA4 capture <b>source / medium / campaign</b> (tráfico):</p>
+        <pre>
+/index.html?utm_source=instagram&utm_medium=social&utm_campaign=promo_enero&debug=1
+/index.html?utm_source=google&utm_medium=cpc&utm_campaign=search_brand&debug=1
+/index.html?utm_source=email&utm_medium=newsletter&utm_campaign=carrito_abandonado&debug=1
+        </pre>
+
+        <h2>3) Recomendación para que Explore “no te falle”</h2>
+        <p>
+          Explore no siempre es instantáneo (hay procesamiento). Para ver al toque:
+          <b>Realtime</b> y <b>DebugView</b>. Igual acá dejamos todo “bien hecho” para que cuando procese,
+          tengas dimensiones y eventos ordenados.
+        </p>
+
+        <p class="small">
+          Si ves warning en consola: te falta Measurement ID en <code>ga4-config.js</code>.
+        </p>
+      </section>
+
+      <aside class="card">
+        <h2>Checklist ultra rápido</h2>
+        <ol style="color:var(--muted); line-height:1.6; margin:8px 0 0 18px;">
+          <li>Crea propiedad GA4 y Web Stream</li>
+          <li>Copia tu Measurement ID (G-…)</li>
+          <li>Pégalo en <code>ga4-config.js</code></li>
+          <li>Levanta servidor local (no file://)</li>
+          <li>Abre <code>?debug=1</code> y mira DebugView</li>
+        </ol>
+        <h2 style="margin-top:14px;">¿Qué vas a practicar?</h2>
+        <div class="list">
+          <div class="item"><div><b>page_view</b><div class="small">page_title, page_location, page_referrer, page_category</div></div><span class="pill">Core</span></div>
+          <div class="item"><div><b>e‑commerce</b><div class="small">view_item_list, view_item, add_to_cart, begin_checkout, purchase</div></div><span class="pill">Pro</span></div>
+          <div class="item"><div><b>leads</b><div class="small">generate_lead, contact, file_download</div></div><span class="pill">Growth</span></div>
+          <div class="item"><div><b>user properties</b><div class="small">membership_tier, device_profile</div></div><span class="pill">Segm.</span></div>
+        </div>
+      </aside>
+    </div>
+
+    <script>
+      // Eventos de práctica
+      document.getElementById("btn_cta").addEventListener("click", () => {
+        ga4Event("select_promotion", {
+          creative_name: "hero_banner",
+          creative_slot: "home_hero",
+          promotion_id: "PROMO-ENERO",
+          promotion_name: "Verano Fit",
+          items: [{ item_id: "SKU-3001", item_name: "Mat Yoga Antideslizante" }]
+        });
+        alert("Evento select_promotion enviado ✅");
+      });
+
+      document.getElementById("btn_signup").addEventListener("click", () => {
+        localStorage.setItem("membership_tier", "silver");
+        ga4Event("sign_up", { method: "email" });
+        alert("Evento sign_up enviado ✅ (tier= silver)");
+      });
+
+      document.getElementById("btn_search").addEventListener("click", () => {
+        ga4Event("search", { search_term: "mancuernas" });
+        // Extra: view_search_results (útil para explorations)
+        ga4Event("view_search_results", { search_term: "mancuernas" });
+        alert("Eventos search + view_search_results enviados ✅");
+      });
+
+      document.getElementById("btn_outbound").addEventListener("click", () => {
+        ga4Event("click", {
+          link_url: "https://example.com/outbound",
+          link_domain: "example.com",
+          outbound: true
+        });
+        window.open("https://example.com", "_blank");
+      });
+    </script>
+
+<footer class="wrap">
+  <div>Hecho para practicar GA4: page_view, recommended events, funnels y explorations. No usa datos personales reales.</div>
+</footer>
+</main>
+
+<script>
+  // Page view siempre al cargar cada página (manual)
+  window.addEventListener("DOMContentLoaded", () => {
+    trackPageView({ page_category: "index" });
+  });
+</script>
+</body>
+</html>

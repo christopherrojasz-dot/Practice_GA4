@@ -1,0 +1,147 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Carrito — GA4 Practice Site</title>
+  <link rel="stylesheet" href="style.css" />
+  <script src="ga4-config.js"></script>
+  <script src="ga4.js"></script>
+</head>
+<body>
+<header>
+  <div class="wrap">
+    <div class="row" style="justify-content:space-between; gap:12px;">
+      <div>
+        <div class="pill">GA4 Practice Site</div>
+        <div class="small">Multi‑página realista · eventos recomendados · e‑commerce demo · debug</div>
+      </div>
+      <div class="small">Tip: agrega <code>?debug=1</code> para DebugView</div>
+    </div>
+    <nav style="margin-top:10px;">
+      <a href="index.html" class="">Inicio</a>
+<a href="catalog.html" class="">Catálogo</a>
+<a href="product.html?item_id=SKU-1001" class="">Producto</a>
+<a href="cart.html" class="active">Carrito</a>
+<a href="checkout.html" class="">Checkout</a>
+<a href="account.html" class="">Cuenta</a>
+<a href="support.html" class="">Soporte</a>
+<a href="blog.html" class="">Blog</a>
+<a href="settings.html" class="">Settings</a>
+    </nav>
+  </div>
+</header>
+<main>
+<div class="grid">
+  <section class="card">
+    <h1>Carrito</h1>
+    <p>Esta página dispara <b>view_cart</b> y luego puedes probar <b>remove_from_cart</b> y <b>begin_checkout</b>.</p>
+
+    <div id="cart" class="list" style="margin-top:12px;"></div>
+
+    <div class="row" style="margin-top:12px;">
+      <button class="bad" id="btn_clear">Vaciar carrito</button>
+      <button class="primary" id="btn_checkout">Ir a checkout</button>
+      <span class="pill" id="total"></span>
+    </div>
+  </section>
+
+  <aside class="card">
+    <h2>Mini‑reto</h2>
+    <p>En Explore, arma un embudo:</p>
+    <ol style="color:var(--muted); line-height:1.6; margin:8px 0 0 18px;">
+      <li>view_item</li>
+      <li>add_to_cart</li>
+      <li>view_cart</li>
+      <li>begin_checkout</li>
+      <li>purchase</li>
+    </ol>
+  </aside>
+</div>
+
+<script>
+  function render(){
+    const cart = getCart();
+    const el = document.getElementById("cart");
+    const total = calcCartValue();
+    document.getElementById("total").textContent = "Total: S/ " + total.toFixed(2);
+
+    if (!cart.length){
+      el.innerHTML = '<div class="item"><div><b>Carrito vacío</b><div class="small">Ve al catálogo y agrega productos.</div></div><a class="pill" href="catalog.html">Ir al catálogo →</a></div>';
+      return;
+    }
+
+    el.innerHTML = cart.map(x => `
+      <div class="item">
+        <div>
+          <b>${x.item_name}</b>
+          <div class="small">${x.item_id} · ${x.item_category} · Cant: ${x.quantity} · S/ ${Number(x.price).toFixed(2)}</div>
+        </div>
+        <div class="row">
+          <button class="bad" data-rm="${x.item_id}">Quitar</button>
+        </div>
+      </div>
+    `).join("");
+
+    el.querySelectorAll("button[data-rm]").forEach(btn => {
+      btn.addEventListener("click", () => {
+        const sku = btn.getAttribute("data-rm");
+        removeFromCart(sku);
+        render();
+      });
+    });
+
+    // view_cart (cada vez que se renderiza con items)
+    ga4Event("view_cart", {
+      currency: "PEN",
+      value: total,
+      items: cart.map(x => ({
+        item_id: x.item_id,
+        item_name: x.item_name,
+        item_category: x.item_category,
+        price: Number(x.price),
+        quantity: Number(x.quantity)||1
+      }))
+    });
+  }
+
+  window.addEventListener("DOMContentLoaded", render);
+
+  document.getElementById("btn_clear").addEventListener("click", () => {
+    setCart([]);
+    ga4Event("remove_from_cart", { reason: "clear_cart" });
+    render();
+  });
+
+  document.getElementById("btn_checkout").addEventListener("click", () => {
+    const cart = getCart();
+    const total = calcCartValue();
+    ga4Event("begin_checkout", {
+      currency: "PEN",
+      value: total,
+      coupon: "WELCOME10",
+      items: cart.map(x => ({
+        item_id: x.item_id,
+        item_name: x.item_name,
+        item_category: x.item_category,
+        price: Number(x.price),
+        quantity: Number(x.quantity)||1
+      }))
+    });
+    window.location.href = "checkout.html" + (window.location.search.includes("debug=1") ? "?debug=1" : "");
+  });
+</script>
+
+<footer class="wrap">
+  <div>Hecho para practicar GA4: page_view, recommended events, funnels y explorations. No usa datos personales reales.</div>
+</footer>
+</main>
+
+<script>
+  // Page view siempre al cargar cada página (manual)
+  window.addEventListener("DOMContentLoaded", () => {
+    trackPageView({ page_category: "cart" });
+  });
+</script>
+</body>
+</html>

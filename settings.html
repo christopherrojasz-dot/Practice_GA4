@@ -1,0 +1,112 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Settings — GA4 Practice Site</title>
+  <link rel="stylesheet" href="style.css" />
+  <script src="ga4-config.js"></script>
+  <script src="ga4.js"></script>
+</head>
+<body>
+<header>
+  <div class="wrap">
+    <div class="row" style="justify-content:space-between; gap:12px;">
+      <div>
+        <div class="pill">GA4 Practice Site</div>
+        <div class="small">Multi‑página realista · eventos recomendados · e‑commerce demo · debug</div>
+      </div>
+      <div class="small">Tip: agrega <code>?debug=1</code> para DebugView</div>
+    </div>
+    <nav style="margin-top:10px;">
+      <a href="index.html" class="">Inicio</a>
+<a href="catalog.html" class="">Catálogo</a>
+<a href="product.html?item_id=SKU-1001" class="">Producto</a>
+<a href="cart.html" class="">Carrito</a>
+<a href="checkout.html" class="">Checkout</a>
+<a href="account.html" class="">Cuenta</a>
+<a href="support.html" class="">Soporte</a>
+<a href="blog.html" class="">Blog</a>
+<a href="settings.html" class="active">Settings</a>
+    </nav>
+  </div>
+</header>
+<main>
+<div class="grid">
+  <section class="card">
+    <h1>Settings</h1>
+    <p>Simula cosas reales: consentimiento, user properties y modo debug.</p>
+
+    <h2>Consent (analytics_storage)</h2>
+    <p class="small">Esto es solo para práctica técnica; no es asesoría legal.</p>
+    <div class="row">
+      <button class="ok" id="consent_grant">Grant</button>
+      <button class="bad" id="consent_deny">Deny</button>
+      <span class="pill" id="consent_state"></span>
+    </div>
+
+    <h2 style="margin-top:16px;">Membership tier (user property)</h2>
+    <div class="row">
+      <select id="tier">
+        <option value="bronze">bronze</option>
+        <option value="silver">silver</option>
+        <option value="gold">gold</option>
+      </select>
+      <button class="primary" id="save_tier">Guardar tier</button>
+    </div>
+
+    <h2 style="margin-top:16px;">Modo Debug</h2>
+    <p>Abre cualquier página con <code>?debug=1</code>. Ejemplo:</p>
+    <pre>http://localhost:8080/index.html?debug=1</pre>
+  </section>
+
+  <aside class="card">
+    <h2>Qué mirar</h2>
+    <p>Si niegas consentimiento, algunos hits pueden no guardarse (depende de configuración). Para práctica, úsalo para ver el flujo.</p>
+  </aside>
+</div>
+
+<script>
+  function refresh(){
+    document.getElementById("consent_state").textContent = "analytics_storage: " + (localStorage.getItem("consent_analytics") || "granted");
+    document.getElementById("tier").value = localStorage.getItem("membership_tier") || "bronze";
+  }
+
+  window.addEventListener("DOMContentLoaded", refresh);
+
+  document.getElementById("consent_grant").addEventListener("click", () => {
+    localStorage.setItem("consent_analytics", "granted");
+    ga4Event("consent_change", { analytics_storage: "granted" });
+    refresh();
+    alert("Consent granted ✅ (recarga para aplicar)");
+  });
+
+  document.getElementById("consent_deny").addEventListener("click", () => {
+    localStorage.setItem("consent_analytics", "denied");
+    ga4Event("consent_change", { analytics_storage: "denied" });
+    refresh();
+    alert("Consent denied ✅ (recarga para aplicar)");
+  });
+
+  document.getElementById("save_tier").addEventListener("click", () => {
+    const tier = document.getElementById("tier").value;
+    localStorage.setItem("membership_tier", tier);
+    ga4Event("set_tier", { membership_tier: tier });
+    refresh();
+    alert("Tier guardado ✅ (recarga para ver user_properties actualizado)");
+  });
+</script>
+
+<footer class="wrap">
+  <div>Hecho para practicar GA4: page_view, recommended events, funnels y explorations. No usa datos personales reales.</div>
+</footer>
+</main>
+
+<script>
+  // Page view siempre al cargar cada página (manual)
+  window.addEventListener("DOMContentLoaded", () => {
+    trackPageView({ page_category: "settings" });
+  });
+</script>
+</body>
+</html>

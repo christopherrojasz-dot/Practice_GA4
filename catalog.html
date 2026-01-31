@@ -1,0 +1,155 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Catálogo — GA4 Practice Site</title>
+  <link rel="stylesheet" href="style.css" />
+  <script src="ga4-config.js"></script>
+  <script src="ga4.js"></script>
+</head>
+<body>
+<header>
+  <div class="wrap">
+    <div class="row" style="justify-content:space-between; gap:12px;">
+      <div>
+        <div class="pill">GA4 Practice Site</div>
+        <div class="small">Multi‑página realista · eventos recomendados · e‑commerce demo · debug</div>
+      </div>
+      <div class="small">Tip: agrega <code>?debug=1</code> para DebugView</div>
+    </div>
+    <nav style="margin-top:10px;">
+      <a href="index.html" class="">Inicio</a>
+<a href="catalog.html" class="active">Catálogo</a>
+<a href="product.html?item_id=SKU-1001" class="">Producto</a>
+<a href="cart.html" class="">Carrito</a>
+<a href="checkout.html" class="">Checkout</a>
+<a href="account.html" class="">Cuenta</a>
+<a href="support.html" class="">Soporte</a>
+<a href="blog.html" class="">Blog</a>
+<a href="settings.html" class="">Settings</a>
+    </nav>
+  </div>
+</header>
+<main>
+    <div class="grid">
+      <section class="card">
+        <h1>Catálogo</h1>
+        <p>Esta página dispara <b>view_item_list</b> al cargar y <b>select_item</b> al hacer click en un producto.</p>
+
+        <div class="row" style="margin:10px 0 6px;">
+          <input id="q" placeholder="Buscar (search_term)" style="min-width:260px;" />
+          <button class="primary" id="btn_search">Buscar</button>
+          <button class="warn" id="btn_filter">Aplicar filtro (view_item_list)</button>
+        </div>
+
+        <div id="catalog" class="list" style="margin-top:12px;"></div>
+      </section>
+
+      <aside class="card">
+        <h2>Tips para Explore</h2>
+        <p>
+          En Explore (Exploraciones), crea una tabla con:
+          <span class="pill">event_name</span>, <span class="pill">item_name</span>, <span class="pill">item_category</span>,
+          <span class="pill">value</span>.
+        </p>
+        <p>
+          Si <b>item_category</b> no aparece, crea un <b>Custom definition</b> (Dimensión personalizada) para ese parámetro.
+        </p>
+        <pre>
+Admin → Custom definitions → Create
+Scope: Event
+Parameter: item_category
+        </pre>
+      </aside>
+    </div>
+
+    <script>
+      const catalog = getCatalog();
+
+      // view_item_list (al cargar)
+      window.addEventListener("DOMContentLoaded", () => {
+        ga4Event("view_item_list", {
+          item_list_id: "home_catalog",
+          item_list_name: "Catálogo principal",
+          items: catalog.map(x => ({
+            item_id: x.item_id,
+            item_name: x.item_name,
+            item_category: x.item_category,
+            price: x.price
+          }))
+        });
+
+        const el = document.getElementById("catalog");
+        el.innerHTML = catalog.map(x => `
+          <div class="item">
+            <div>
+              <b>${x.item_name}</b>
+              <div class="small">${x.item_id} · ${x.item_category} · S/ ${x.price.toFixed(2)}</div>
+            </div>
+            <div class="row">
+              <button class="primary" data-sku="${x.item_id}">Ver</button>
+              <button class="ok" data-add="${x.item_id}">Add</button>
+            </div>
+          </div>
+        `).join("");
+
+        el.querySelectorAll("button[data-sku]").forEach(btn => {
+          btn.addEventListener("click", () => {
+            const sku = btn.getAttribute("data-sku");
+            const item = catalog.find(i => i.item_id === sku);
+            ga4Event("select_item", {
+              item_list_id: "home_catalog",
+              item_list_name: "Catálogo principal",
+              items: [{ item_id: item.item_id, item_name: item.item_name, item_category: item.item_category, price: item.price }]
+            });
+            window.location.href = "product.html?item_id=" + encodeURIComponent(sku) + (window.location.search.includes("debug=1") ? "&debug=1" : "");
+          });
+        });
+
+        el.querySelectorAll("button[data-add]").forEach(btn => {
+          btn.addEventListener("click", () => {
+            const sku = btn.getAttribute("data-add");
+            addToCart(sku, 1);
+            alert("Agregado al carrito ✅");
+          });
+        });
+      });
+
+      document.getElementById("btn_search").addEventListener("click", () => {
+        const term = (document.getElementById("q").value || "").trim() || "banda";
+        ga4Event("search", { search_term: term });
+        ga4Event("view_search_results", { search_term: term });
+        alert("Search enviado ✅");
+      });
+
+      document.getElementById("btn_filter").addEventListener("click", () => {
+        ga4Event("view_item_list", {
+          item_list_id: "filtered_catalog",
+          item_list_name: "Catálogo filtrado",
+          filter_type: "category",
+          filter_value: "fitness",
+          items: catalog.filter(x => x.item_category === "fitness").map(x => ({
+            item_id: x.item_id,
+            item_name: x.item_name,
+            item_category: x.item_category,
+            price: x.price
+          }))
+        });
+        alert("view_item_list (filtrado) enviado ✅");
+      });
+    </script>
+
+<footer class="wrap">
+  <div>Hecho para practicar GA4: page_view, recommended events, funnels y explorations. No usa datos personales reales.</div>
+</footer>
+</main>
+
+<script>
+  // Page view siempre al cargar cada página (manual)
+  window.addEventListener("DOMContentLoaded", () => {
+    trackPageView({ page_category: "catalog" });
+  });
+</script>
+</body>
+</html>

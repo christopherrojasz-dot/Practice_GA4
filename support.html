@@ -1,0 +1,131 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Soporte — GA4 Practice Site</title>
+  <link rel="stylesheet" href="style.css" />
+  <script src="ga4-config.js"></script>
+  <script src="ga4.js"></script>
+</head>
+<body>
+<header>
+  <div class="wrap">
+    <div class="row" style="justify-content:space-between; gap:12px;">
+      <div>
+        <div class="pill">GA4 Practice Site</div>
+        <div class="small">Multi‑página realista · eventos recomendados · e‑commerce demo · debug</div>
+      </div>
+      <div class="small">Tip: agrega <code>?debug=1</code> para DebugView</div>
+    </div>
+    <nav style="margin-top:10px;">
+      <a href="index.html" class="">Inicio</a>
+<a href="catalog.html" class="">Catálogo</a>
+<a href="product.html?item_id=SKU-1001" class="">Producto</a>
+<a href="cart.html" class="">Carrito</a>
+<a href="checkout.html" class="">Checkout</a>
+<a href="account.html" class="">Cuenta</a>
+<a href="support.html" class="active">Soporte</a>
+<a href="blog.html" class="">Blog</a>
+<a href="settings.html" class="">Settings</a>
+    </nav>
+  </div>
+</header>
+<main>
+    <div class="grid">
+      <section class="card">
+        <h1>Soporte / Lead</h1>
+        <p>
+          Aquí practicas <b>generate_lead</b>, <b>contact</b>, <b>file_download</b> y un mini “chat” (custom event).
+        </p>
+
+        <h2>Formulario (lead)</h2>
+        <div class="row">
+          <input id="name" placeholder="Nombre (demo)" />
+          <input id="topic" placeholder="Tema: 'rutina gestantes'" style="min-width:260px;" />
+          <button class="ok" id="btn_lead">Enviar</button>
+        </div>
+
+        <h2 style="margin-top:16px;">Descargas / recursos</h2>
+        <div class="row">
+          <button class="primary" id="btn_pdf">Descargar PDF (file_download)</button>
+          <button class="warn" id="btn_call">Solicitar llamada (contact)</button>
+        </div>
+
+        <h2 style="margin-top:16px;">Mini chat (custom)</h2>
+        <div class="row">
+          <input id="msg" placeholder="Escribe: 'precio', 'horario', 'delivery'..." style="min-width:320px;" />
+          <button class="primary" id="btn_send">Enviar</button>
+        </div>
+        <div id="chat" class="small" style="margin-top:10px;"></div>
+      </section>
+
+      <aside class="card">
+        <h2>Custom events</h2>
+        <p>
+          En “chat” enviamos un evento <span class="pill">support_message</span> con parámetros
+          <span class="pill">intent</span> y <span class="pill">message_len</span>.
+        </p>
+        <pre>
+Admin → Custom definitions
+Event parameter: intent
+Event parameter: message_len
+        </pre>
+      </aside>
+    </div>
+
+    <script>
+      document.getElementById("btn_lead").addEventListener("click", () => {
+        const topic = (document.getElementById("topic").value || "").trim() || "general";
+        ga4Event("generate_lead", { lead_type: "support_form", topic: topic });
+        alert("generate_lead enviado ✅");
+      });
+
+      document.getElementById("btn_call").addEventListener("click", () => {
+        ga4Event("contact", { method: "phone", department: "support" });
+        alert("contact enviado ✅");
+      });
+
+      document.getElementById("btn_pdf").addEventListener("click", () => {
+        ga4Event("file_download", {
+          file_name: "guia_ga4_practica.pdf",
+          file_extension: "pdf",
+          link_url: window.location.href + "#download"
+        });
+        alert("file_download enviado ✅ (simulado)");
+      });
+
+      function detectIntent(text){
+        const t = text.toLowerCase();
+        if (t.includes("precio") || t.includes("costo")) return "pricing";
+        if (t.includes("horario")) return "hours";
+        if (t.includes("delivery") || t.includes("envio")) return "shipping";
+        return "other";
+      }
+
+      document.getElementById("btn_send").addEventListener("click", () => {
+        const msg = (document.getElementById("msg").value || "").trim();
+        if (!msg) return;
+        const intent = detectIntent(msg);
+        ga4Event("support_message", {
+          intent: intent,
+          message_len: msg.length
+        });
+        document.getElementById("chat").textContent = "✅ Mensaje enviado. Intent detectado: " + intent;
+        document.getElementById("msg").value = "";
+      });
+    </script>
+
+<footer class="wrap">
+  <div>Hecho para practicar GA4: page_view, recommended events, funnels y explorations. No usa datos personales reales.</div>
+</footer>
+</main>
+
+<script>
+  // Page view siempre al cargar cada página (manual)
+  window.addEventListener("DOMContentLoaded", () => {
+    trackPageView({ page_category: "support" });
+  });
+</script>
+</body>
+</html>

@@ -1,0 +1,183 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Checkout — GA4 Practice Site</title>
+  <link rel="stylesheet" href="style.css" />
+  <script src="ga4-config.js"></script>
+  <script src="ga4.js"></script>
+</head>
+<body>
+<header>
+  <div class="wrap">
+    <div class="row" style="justify-content:space-between; gap:12px;">
+      <div>
+        <div class="pill">GA4 Practice Site</div>
+        <div class="small">Multi‑página realista · eventos recomendados · e‑commerce demo · debug</div>
+      </div>
+      <div class="small">Tip: agrega <code>?debug=1</code> para DebugView</div>
+    </div>
+    <nav style="margin-top:10px;">
+      <a href="index.html" class="">Inicio</a>
+<a href="catalog.html" class="">Catálogo</a>
+<a href="product.html?item_id=SKU-1001" class="">Producto</a>
+<a href="cart.html" class="">Carrito</a>
+<a href="checkout.html" class="active">Checkout</a>
+<a href="account.html" class="">Cuenta</a>
+<a href="support.html" class="">Soporte</a>
+<a href="blog.html" class="">Blog</a>
+<a href="settings.html" class="">Settings</a>
+    </nav>
+  </div>
+</header>
+<main>
+    <div class="grid">
+      <section class="card">
+        <h1>Checkout</h1>
+        <p>Simula un checkout real: <b>add_shipping_info</b>, <b>add_payment_info</b>, <b>purchase</b>.</p>
+
+        <div class="row" style="margin-top:10px;">
+          <label class="small">Distrito:</label>
+          <select id="district">
+            <option value="Cercado">Cercado de Lima</option>
+            <option value="SJL">San Juan de Lurigancho</option>
+            <option value="SMP">San Martín de Porres</option>
+            <option value="Miraflores">Miraflores</option>
+            <option value="Surco">Santiago de Surco</option>
+          </select>
+          <label class="small">Envío:</label>
+          <select id="ship">
+            <option value="standard">Standard</option>
+            <option value="express">Express</option>
+          </select>
+        </div>
+
+        <div class="row" style="margin-top:10px;">
+          <label class="small">Pago:</label>
+          <select id="pay">
+            <option value="card">Tarjeta</option>
+            <option value="yape">Yape</option>
+            <option value="plin">Plin</option>
+            <option value="cash">Contraentrega</option>
+          </select>
+          <button class="primary" id="btn_ship">Guardar envío</button>
+          <button class="warn" id="btn_pay">Guardar pago</button>
+        </div>
+
+        <h2 style="margin-top:16px;">Finalizar compra</h2>
+        <div class="row">
+          <button class="ok" id="btn_buy">Comprar (purchase)</button>
+          <a class="pill" href="cart.html">← volver al carrito</a>
+          <span class="pill" id="total"></span>
+        </div>
+
+        <div style="margin-top:12px;" class="small">
+          Nota: esto genera un <b>transaction_id</b> aleatorio para practicar reportes de compras.
+        </div>
+      </section>
+
+      <aside class="card">
+        <h2>Para que Explore sea potente</h2>
+        <p>
+          Crea métricas/dimensiones personalizadas para:
+          <span class="pill">district</span>, <span class="pill">shipping_tier</span>, <span class="pill">payment_type</span>.
+        </p>
+        <pre>
+Admin → Custom definitions
+Event parameter: district
+Event parameter: shipping_tier
+Event parameter: payment_type
+        </pre>
+      </aside>
+    </div>
+
+    <script>
+      function cartItems(){
+        const cart = getCart();
+        return cart.map(x => ({
+          item_id: x.item_id,
+          item_name: x.item_name,
+          item_category: x.item_category,
+          price: Number(x.price),
+          quantity: Number(x.quantity)||1
+        }));
+      }
+
+      function refreshTotal(){
+        document.getElementById("total").textContent = "Total: S/ " + calcCartValue().toFixed(2);
+      }
+
+      window.addEventListener("DOMContentLoaded", () => {
+        refreshTotal();
+        if (!getCart().length){
+          alert("Tu carrito está vacío. Ve al catálogo primero.");
+          window.location.href = "catalog.html";
+        }
+      });
+
+      document.getElementById("btn_ship").addEventListener("click", () => {
+        const district = document.getElementById("district").value;
+        const shipping = document.getElementById("ship").value;
+        ga4Event("add_shipping_info", {
+          currency: "PEN",
+          value: calcCartValue(),
+          district: district,
+          shipping_tier: shipping,
+          items: cartItems()
+        });
+        alert("add_shipping_info enviado ✅");
+      });
+
+      document.getElementById("btn_pay").addEventListener("click", () => {
+        const pay = document.getElementById("pay").value;
+        ga4Event("add_payment_info", {
+          currency: "PEN",
+          value: calcCartValue(),
+          payment_type: pay,
+          items: cartItems()
+        });
+        alert("add_payment_info enviado ✅");
+      });
+
+      document.getElementById("btn_buy").addEventListener("click", () => {
+        const pay = document.getElementById("pay").value;
+        const district = document.getElementById("district").value;
+        const shipping = document.getElementById("ship").value;
+
+        const transaction_id = randomId("ORDER");
+        const total = calcCartValue();
+
+        ga4Event("purchase", {
+          transaction_id: transaction_id,
+          affiliation: "Fit Mayernit Store",
+          currency: "PEN",
+          value: total,
+          tax: Number((total * 0.18).toFixed(2)),
+          shipping: (shipping === "express") ? 15 : 8,
+          coupon: "WELCOME10",
+          payment_type: pay,
+          district: district,
+          shipping_tier: shipping,
+          items: cartItems()
+        });
+
+        // Limpia carrito y redirige
+        setCart([]);
+        window.location.href = "thankyou.html?tx=" + encodeURIComponent(transaction_id) + (window.location.search.includes("debug=1") ? "&debug=1" : "");
+      });
+    </script>
+
+<footer class="wrap">
+  <div>Hecho para practicar GA4: page_view, recommended events, funnels y explorations. No usa datos personales reales.</div>
+</footer>
+</main>
+
+<script>
+  // Page view siempre al cargar cada página (manual)
+  window.addEventListener("DOMContentLoaded", () => {
+    trackPageView({ page_category: "checkout" });
+  });
+</script>
+</body>
+</html>

@@ -1,0 +1,143 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Producto — GA4 Practice Site</title>
+  <link rel="stylesheet" href="style.css" />
+  <script src="ga4-config.js"></script>
+  <script src="ga4.js"></script>
+</head>
+<body>
+<header>
+  <div class="wrap">
+    <div class="row" style="justify-content:space-between; gap:12px;">
+      <div>
+        <div class="pill">GA4 Practice Site</div>
+        <div class="small">Multi‑página realista · eventos recomendados · e‑commerce demo · debug</div>
+      </div>
+      <div class="small">Tip: agrega <code>?debug=1</code> para DebugView</div>
+    </div>
+    <nav style="margin-top:10px;">
+      <a href="index.html" class="">Inicio</a>
+<a href="catalog.html" class="">Catálogo</a>
+<a href="product.html?item_id=SKU-1001" class="active">Producto</a>
+<a href="cart.html" class="">Carrito</a>
+<a href="checkout.html" class="">Checkout</a>
+<a href="account.html" class="">Cuenta</a>
+<a href="support.html" class="">Soporte</a>
+<a href="blog.html" class="">Blog</a>
+<a href="settings.html" class="">Settings</a>
+    </nav>
+  </div>
+</header>
+<main>
+    <div class="grid">
+      <section class="card">
+        <h1>Producto</h1>
+        <p>Esta página dispara <b>view_item</b> al cargar y <b>add_to_cart</b> con items correctos.</p>
+
+        <div id="p" class="item" style="margin-top:12px;"></div>
+
+        <div class="row" style="margin-top:12px;">
+          <select id="qty">
+            <option value="1">1 unidad</option>
+            <option value="2">2 unidades</option>
+            <option value="3">3 unidades</option>
+          </select>
+          <button class="ok" id="btn_add">Agregar al carrito</button>
+          <a class="pill" href="cart.html">Ir al carrito →</a>
+        </div>
+
+        <h2 style="margin-top:16px;">Micro‑conversiones</h2>
+        <div class="row">
+          <button class="primary" id="btn_wishlist">Agregar a wishlist</button>
+          <button class="warn" id="btn_share">Compartir</button>
+        </div>
+      </section>
+
+      <aside class="card">
+        <h2>Para practicar parámetros</h2>
+        <p>
+          Aquí mandamos <span class="pill">item_category</span>, <span class="pill">price</span>, <span class="pill">quantity</span>,
+          y también un parámetro custom <span class="pill">stock_state</span>.
+        </p>
+        <pre>
+Crea custom dimension:
+Scope: Event
+Parameter: stock_state
+        </pre>
+      </aside>
+    </div>
+
+    <script>
+      function getParam(name){
+        const u = new URL(window.location.href);
+        return u.searchParams.get(name);
+      }
+      const sku = getParam("item_id") || "SKU-1001";
+      const item = getCatalog().find(x => x.item_id === sku) || getCatalog()[0];
+
+      const stock = (sku === "SKU-1002") ? "low" : "in_stock";
+
+      window.addEventListener("DOMContentLoaded", () => {
+        document.getElementById("p").innerHTML = `
+          <div>
+            <b>${item.item_name}</b>
+            <div class="small">${item.item_id} · ${item.item_category} · <span class="pill">stock: ${stock}</span></div>
+          </div>
+          <div><b>S/ ${item.price.toFixed(2)}</b></div>
+        `;
+
+        // view_item
+        ga4Event("view_item", {
+          currency: "PEN",
+          value: item.price,
+          stock_state: stock,
+          items: [{
+            item_id: item.item_id,
+            item_name: item.item_name,
+            item_category: item.item_category,
+            price: item.price,
+            quantity: 1
+          }]
+        });
+      });
+
+      document.getElementById("btn_add").addEventListener("click", () => {
+        const qty = Number(document.getElementById("qty").value || "1");
+        addToCart(item.item_id, qty);
+        alert("add_to_cart enviado ✅");
+      });
+
+      document.getElementById("btn_wishlist").addEventListener("click", () => {
+        ga4Event("add_to_wishlist", {
+          items: [{ item_id: item.item_id, item_name: item.item_name, item_category: item.item_category, price: item.price }]
+        });
+        alert("add_to_wishlist enviado ✅");
+      });
+
+      document.getElementById("btn_share").addEventListener("click", () => {
+        ga4Event("share", {
+          method: "copy_link",
+          content_type: "product",
+          item_id: item.item_id
+        });
+        navigator.clipboard?.writeText(window.location.href);
+        alert("share enviado ✅ (link copiado)");
+      });
+    </script>
+
+<footer class="wrap">
+  <div>Hecho para practicar GA4: page_view, recommended events, funnels y explorations. No usa datos personales reales.</div>
+</footer>
+</main>
+
+<script>
+  // Page view siempre al cargar cada página (manual)
+  window.addEventListener("DOMContentLoaded", () => {
+    trackPageView({ page_category: "product" });
+  });
+</script>
+</body>
+</html>

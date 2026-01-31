@@ -1,0 +1,108 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Blog — GA4 Practice Site</title>
+  <link rel="stylesheet" href="style.css" />
+  <script src="ga4-config.js"></script>
+  <script src="ga4.js"></script>
+</head>
+<body>
+<header>
+  <div class="wrap">
+    <div class="row" style="justify-content:space-between; gap:12px;">
+      <div>
+        <div class="pill">GA4 Practice Site</div>
+        <div class="small">Multi‑página realista · eventos recomendados · e‑commerce demo · debug</div>
+      </div>
+      <div class="small">Tip: agrega <code>?debug=1</code> para DebugView</div>
+    </div>
+    <nav style="margin-top:10px;">
+      <a href="index.html" class="">Inicio</a>
+<a href="catalog.html" class="">Catálogo</a>
+<a href="product.html?item_id=SKU-1001" class="">Producto</a>
+<a href="cart.html" class="">Carrito</a>
+<a href="checkout.html" class="">Checkout</a>
+<a href="account.html" class="">Cuenta</a>
+<a href="support.html" class="">Soporte</a>
+<a href="blog.html" class="active">Blog</a>
+<a href="settings.html" class="">Settings</a>
+    </nav>
+  </div>
+</header>
+<main>
+<div class="grid">
+  <section class="card">
+    <h1>Blog</h1>
+    <p>Práctica de <b>scroll</b>, <b>engagement</b> y <b>share</b>. Baja hasta el final para disparar eventos.</p>
+
+    <div class="card" style="margin-top:12px; padding:14px;">
+      <h2>Artículo: Cómo medir un funnel en GA4</h2>
+      <p>Este texto es “largo” a propósito para forzar scroll y práctica de eventos.</p>
+      <div id="content" style="margin-top:10px; color: var(--muted); line-height:1.7;"></div>
+    </div>
+
+    <div class="row" style="margin-top:12px;">
+      <button class="primary" id="btn_share">Compartir artículo</button>
+      <button class="warn" id="btn_sub">Suscribirme (subscribe)</button>
+    </div>
+    <div class="small" id="status" style="margin-top:10px;"></div>
+  </section>
+
+  <aside class="card">
+    <h2>¿Qué ver en GA4?</h2>
+    <p>En DebugView deberías ver:</p>
+    <ul style="color:var(--muted); line-height:1.6; margin:8px 0 0 18px;">
+      <li>page_view</li>
+      <li>scroll (cuando llegas 90%)</li>
+      <li>share / subscribe</li>
+      <li>user_engagement (si GA4 lo genera automáticamente)</li>
+    </ul>
+  </aside>
+</div>
+
+<script>
+  // Genera contenido largo
+  const content = document.getElementById("content");
+  const para = "GA4 trabaja con eventos. Para dominarlo, piensa en: adquisición (source/medium), comportamiento (page_view + eventos), y resultados (conversiones). ";
+  content.innerHTML = Array.from({length: 60}).map((_,i)=> `<p>${i+1}. ${para.repeat(2)}</p>`).join("");
+
+  let fired90 = false;
+  window.addEventListener("scroll", () => {
+    const scrollTop = window.scrollY || document.documentElement.scrollTop;
+    const docH = document.documentElement.scrollHeight - document.documentElement.clientHeight;
+    const pct = docH > 0 ? (scrollTop / docH) : 0;
+
+    if (!fired90 && pct >= 0.90) {
+      fired90 = true;
+      ga4Event("scroll", { percent_scrolled: 90, content_type: "blog", article_id: "ga4-funnel-001" });
+      document.getElementById("status").textContent = "✅ scroll 90% enviado.";
+    }
+  }, { passive: true });
+
+  document.getElementById("btn_share").addEventListener("click", () => {
+    ga4Event("share", { method: "copy_link", content_type: "blog", item_id: "ga4-funnel-001" });
+    navigator.clipboard?.writeText(window.location.href);
+    document.getElementById("status").textContent = "✅ share enviado (link copiado).";
+  });
+
+  document.getElementById("btn_sub").addEventListener("click", () => {
+    ga4Event("subscribe", { method: "email_newsletter", topic: "analytics" });
+    document.getElementById("status").textContent = "✅ subscribe enviado.";
+  });
+</script>
+
+<footer class="wrap">
+  <div>Hecho para practicar GA4: page_view, recommended events, funnels y explorations. No usa datos personales reales.</div>
+</footer>
+</main>
+
+<script>
+  // Page view siempre al cargar cada página (manual)
+  window.addEventListener("DOMContentLoaded", () => {
+    trackPageView({ page_category: "blog" });
+  });
+</script>
+</body>
+</html>

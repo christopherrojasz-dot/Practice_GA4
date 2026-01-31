@@ -1,0 +1,5 @@
+1) Edita ga4-config.js y pega tu Measurement ID (G-...)
+2) Abre una terminal en esta carpeta
+3) Ejecuta: python -m http.server 8080
+4) Abre: http://localhost:8080/index.html?debug=1
+5) Ve a GA4 → Admin → DebugView

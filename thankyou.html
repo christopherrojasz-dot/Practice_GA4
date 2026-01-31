@@ -1,0 +1,94 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Gracias — GA4 Practice Site</title>
+  <link rel="stylesheet" href="style.css" />
+  <script src="ga4-config.js"></script>
+  <script src="ga4.js"></script>
+</head>
+<body>
+<header>
+  <div class="wrap">
+    <div class="row" style="justify-content:space-between; gap:12px;">
+      <div>
+        <div class="pill">GA4 Practice Site</div>
+        <div class="small">Multi‑página realista · eventos recomendados · e‑commerce demo · debug</div>
+      </div>
+      <div class="small">Tip: agrega <code>?debug=1</code> para DebugView</div>
+    </div>
+    <nav style="margin-top:10px;">
+      <a href="index.html" class="">Inicio</a>
+<a href="catalog.html" class="">Catálogo</a>
+<a href="product.html?item_id=SKU-1001" class="">Producto</a>
+<a href="cart.html" class="">Carrito</a>
+<a href="checkout.html" class="">Checkout</a>
+<a href="account.html" class="">Cuenta</a>
+<a href="support.html" class="">Soporte</a>
+<a href="blog.html" class="">Blog</a>
+<a href="settings.html" class="">Settings</a>
+    </nav>
+  </div>
+</header>
+<main>
+<div class="grid">
+  <section class="card">
+    <h1>¡Compra realizada! ✅</h1>
+    <p>Esta página es la “confirmación”. Sirve para practicar reportes por transacción.</p>
+
+    <div class="item" style="margin-top:12px;">
+      <div>
+        <b>Transaction</b>
+        <div class="small" id="tx">—</div>
+      </div>
+      <span class="pill">purchase</span>
+    </div>
+
+    <h2 style="margin-top:16px;">Siguientes prácticas</h2>
+    <div class="row">
+      <a class="pill" href="catalog.html">Seguir comprando</a>
+      <a class="pill" href="support.html">Generar lead</a>
+      <a class="pill" href="index.html">Volver al inicio</a>
+    </div>
+
+    <h2 style="margin-top:16px;">Extra</h2>
+    <div class="row">
+      <button class="primary" id="btn_refund">Simular reembolso (refund)</button>
+    </div>
+  </section>
+
+  <aside class="card">
+    <h2>Exploration sugerida</h2>
+    <p>Tabla: <span class="pill">transaction_id</span> vs <span class="pill">value</span> y <span class="pill">district</span>.</p>
+    <p class="small">Tip: crea custom dimensions para district / payment_type / shipping_tier.</p>
+  </aside>
+</div>
+
+<script>
+  function getParam(name){
+    const u = new URL(window.location.href);
+    return u.searchParams.get(name);
+  }
+  const tx = getParam("tx") || "—";
+  document.getElementById("tx").textContent = tx;
+
+  document.getElementById("btn_refund").addEventListener("click", () => {
+    ga4Event("refund", { transaction_id: tx, value: 10.00, currency: "PEN" });
+    alert("refund enviado ✅");
+  });
+</script>
+
+<footer class="wrap">
+  <div>Hecho para practicar GA4: page_view, recommended events, funnels y explorations. No usa datos personales reales.</div>
+</footer>
+</main>
+
+<script>
+  // Page view siempre al cargar cada página (manual)
+  window.addEventListener("DOMContentLoaded", () => {
+    trackPageView({ page_category: "thankyou" });
+  });
+</script>
+</body>
+</html>

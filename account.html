@@ -1,0 +1,153 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Cuenta — GA4 Practice Site</title>
+  <link rel="stylesheet" href="style.css" />
+  <script src="ga4-config.js"></script>
+  <script src="ga4.js"></script>
+</head>
+<body>
+<header>
+  <div class="wrap">
+    <div class="row" style="justify-content:space-between; gap:12px;">
+      <div>
+        <div class="pill">GA4 Practice Site</div>
+        <div class="small">Multi‑página realista · eventos recomendados · e‑commerce demo · debug</div>
+      </div>
+      <div class="small">Tip: agrega <code>?debug=1</code> para DebugView</div>
+    </div>
+    <nav style="margin-top:10px;">
+      <a href="index.html" class="">Inicio</a>
+<a href="catalog.html" class="">Catálogo</a>
+<a href="product.html?item_id=SKU-1001" class="">Producto</a>
+<a href="cart.html" class="">Carrito</a>
+<a href="checkout.html" class="">Checkout</a>
+<a href="account.html" class="active">Cuenta</a>
+<a href="support.html" class="">Soporte</a>
+<a href="blog.html" class="">Blog</a>
+<a href="settings.html" class="">Settings</a>
+    </nav>
+  </div>
+</header>
+<main>
+    <div class="grid">
+      <section class="card">
+        <h1>Cuenta</h1>
+        <p>Práctica de <b>sign_up</b>, <b>login</b> y user_properties (tier).</p>
+
+        <div class="grid" style="grid-template-columns:1fr 1fr;">
+          <div class="card" style="padding:14px;">
+            <h2>Registro</h2>
+            <div class="row">
+              <input id="su_email" placeholder="email" />
+              <select id="su_method">
+                <option value="email">email</option>
+                <option value="google">google</option>
+                <option value="facebook">facebook</option>
+              </select>
+            </div>
+            <div class="row" style="margin-top:10px;">
+              <label class="small">Tier:</label>
+              <select id="tier">
+                <option value="bronze">bronze</option>
+                <option value="silver">silver</option>
+                <option value="gold">gold</option>
+              </select>
+              <button class="ok" id="btn_signup">Crear cuenta</button>
+            </div>
+          </div>
+
+          <div class="card" style="padding:14px;">
+            <h2>Login</h2>
+            <div class="row">
+              <input id="li_email" placeholder="email" />
+              <select id="li_method">
+                <option value="email">email</option>
+                <option value="google">google</option>
+                <option value="facebook">facebook</option>
+              </select>
+            </div>
+            <div class="row" style="margin-top:10px;">
+              <button class="primary" id="btn_login">Ingresar</button>
+              <button class="warn" id="btn_logout">Logout</button>
+            </div>
+          </div>
+        </div>
+
+        <h2 style="margin-top:16px;">Acciones típicas</h2>
+        <div class="row">
+          <button class="primary" id="btn_profile">Editar perfil (select_content)</button>
+          <button class="warn" id="btn_notify">Activar notificaciones (subscribe)</button>
+        </div>
+
+        <div class="small" style="margin-top:12px;">
+          Nota: No enviamos datos personales reales. El “email” es solo demo y <b>no</b> se manda a GA4.
+        </div>
+      </section>
+
+      <aside class="card">
+        <h2>User properties</h2>
+        <p>
+          Este sitio setea <span class="pill">membership_tier</span> desde <code>localStorage</code>.
+          Cambia el tier y revisa en DebugView.
+        </p>
+        <pre>
+gtag('set','user_properties',{
+  membership_tier: 'gold'
+})
+        </pre>
+      </aside>
+    </div>
+
+    <script>
+      function randomUserId(){
+        return "u_" + Math.random().toString(16).slice(2,10);
+      }
+
+      document.getElementById("btn_signup").addEventListener("click", () => {
+        const tier = document.getElementById("tier").value;
+        localStorage.setItem("membership_tier", tier);
+        localStorage.setItem("user_id_demo", randomUserId());
+        ga4Event("sign_up", { method: document.getElementById("su_method").value });
+        ga4Event("login", { method: document.getElementById("su_method").value, first_login: true });
+        alert("sign_up + login enviados ✅ (tier=" + tier + ")");
+      });
+
+      document.getElementById("btn_login").addEventListener("click", () => {
+        const uid = localStorage.getItem("user_id_demo") || randomUserId();
+        localStorage.setItem("user_id_demo", uid);
+        ga4Event("login", { method: document.getElementById("li_method").value });
+        alert("login enviado ✅ (user_id_demo guardado)");
+      });
+
+      document.getElementById("btn_logout").addEventListener("click", () => {
+        ga4Event("logout", {});
+        alert("logout enviado ✅");
+      });
+
+      document.getElementById("btn_profile").addEventListener("click", () => {
+        ga4Event("select_content", { content_type: "profile", item_id: "profile_edit" });
+        alert("select_content enviado ✅");
+      });
+
+      document.getElementById("btn_notify").addEventListener("click", () => {
+        ga4Event("subscribe", { method: "web_push" });
+        alert("subscribe enviado ✅");
+      });
+    </script>
+
+<footer class="wrap">
+  <div>Hecho para practicar GA4: page_view, recommended events, funnels y explorations. No usa datos personales reales.</div>
+</footer>
+</main>
+
+<script>
+  // Page view siempre al cargar cada página (manual)
+  window.addEventListener("DOMContentLoaded", () => {
+    trackPageView({ page_category: "account" });
+  });
+</script>
+</body>
+</html>
